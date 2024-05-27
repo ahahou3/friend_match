@@ -25,7 +25,7 @@
         avatarUrl,gender,userPassword,
         phone,email,userStatus,
         createTime,updateTime,isDelete,
-        userRole
+        userRole, tags
     </sql>
 
     <select id="getUserId" parameterType="String" resultType="int">

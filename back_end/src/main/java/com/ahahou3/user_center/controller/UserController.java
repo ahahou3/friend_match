@@ -97,7 +97,7 @@ public BaseResponse<List<User>> searchUsers(String userName, String userAccount,
         }
     });
     List<User> userList = userService.list(queryWrapper);
-    List<User> list = userList.stream().map(user -> userService.getSaftyUser(user)).collect(Collectors.toList());
+    List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
     return ResultUtil.success(list);
 }
 
@@ -111,7 +111,7 @@ public BaseResponse<List<User>> searchUsers(String userName, String userAccount,
             Long userId = currentUser.getId();
             //todo校验用户是否合法
             User user = userService.getById(userId);
-            User safeUser = userService.getSaftyUser(user);
+            User safeUser = userService.getSafetyUser(user);
             return ResultUtil.success(safeUser);
     }
 

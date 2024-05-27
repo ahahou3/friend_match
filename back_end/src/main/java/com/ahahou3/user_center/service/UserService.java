@@ -6,6 +6,8 @@ import com.ahahou3.user_center.model.domain.request.UserUpdateRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
+
 /**
 * @author wangz
 * @description 针对表【user(用户)】的数据库操作Service
@@ -37,7 +39,7 @@ public interface UserService extends IService<User> {
      * @param originUser
      * @return 脱敏后用户信息
      */
-    User getSaftyUser(User originUser);
+    User getSafetyUser(User originUser);
 
     boolean updateUser(UserUpdateRequest userUpdateRequest);
 
@@ -47,4 +49,6 @@ public interface UserService extends IService<User> {
      * @return
      */
     int userLogout(HttpServletRequest request);
+
+    List<User> searchUsersByTags(List<String> tagList);
 }

@@ -10,15 +10,21 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ahahou3.user_center.model.domain.User;
 import com.ahahou3.user_center.service.UserService;
 import com.ahahou3.user_center.mapper.UserMapper;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.ahahou3.user_center.constant.UserConstants.USER_LOGIN_STATE;
 
@@ -136,7 +142,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         //3.用户脱敏
-        User saftyUser = getSaftyUser(user);
+        User saftyUser = getSafetyUser(user);
 
         //4.记录用户的登录态
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
@@ -150,7 +156,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return 脱敏后用户信息
      */
     @Override
-    public  User getSaftyUser(User originUser){
+    public  User getSafetyUser(User originUser){
         if (originUser == null) {
             throw new BusinessException(ErrorCode.PARAMETERS_ERROR);
         }
@@ -166,6 +172,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         saftyUser.setUserStatus(originUser.getUserStatus());
         saftyUser.setCreateTime(originUser.getCreateTime());
         saftyUser.setUserRole(originUser.getUserRole());
+        saftyUser.setTags(originUser.getTags());
         return saftyUser;
     }
 
@@ -210,6 +217,50 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public int userLogout(HttpServletRequest request){
         request.getSession().removeAttribute(USER_LOGIN_STATE);
         return 1;
+    }
+
+    /**
+     * 根据标签搜索用户
+     * @param tagList
+     * @return
+     */
+    @Override
+    public List<User> searchUsersByTags(List<String> tagList){
+        if(CollectionUtils.isEmpty(tagList)){
+            throw new BusinessException(ErrorCode.PARAMETERS_ERROR);
+        }
+        /**
+         * sql查询
+         */
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//
+//        for(String tagName : tagList){
+//            queryWrapper = queryWrapper.like("tags", tagName);
+//        }
+//        List<User> userList = userMapper.selectList(queryWrapper);
+//        System.out.println("sql query time = " + (System.currentTimeMillis() - startTime));
+//        return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
+        /**
+         * 内存查询
+         */
+        //1.先查询所有用户
+        QueryWrapper queryWrapper = new QueryWrapper<>();
+        List<User> userList = userMapper.selectList(queryWrapper);
+        Gson gson = new Gson();
+        //2.判断内存中是否包含要求的标签
+        return userList.stream().filter(user -> {
+            String tagstr = user.getTags();
+            if (StringUtils.isBlank(tagstr)){
+                return false;
+            }
+            Set<String> tempTagNameSet =  gson.fromJson(tagstr,new TypeToken<Set<String>>(){}.getType());
+            for (String tagName : tagList){
+                if (!tempTagNameSet.contains(tagName)){
+                    return false;
+                }
+            }
+            return true;
+        }).map(this::getSafetyUser).collect(Collectors.toList());
     }
 }
 
