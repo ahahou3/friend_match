@@ -10,6 +10,9 @@ import com.ahahou3.user_center.model.domain.request.UserRegisterRequest;
 import com.ahahou3.user_center.model.domain.request.UserUpdateRequest;
 import com.ahahou3.user_center.service.UserService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +31,8 @@ import static com.ahahou3.user_center.constant.UserConstants.USER_LOGIN_STATE;
  *
  * @author ahahou
  */
+
+@Tag(name = "用户管理")
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -35,6 +40,8 @@ public class UserController {
     @Resource
     private UserService userService;
 
+    @Parameter
+    @Operation(summary = "用户注册")
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest){
         if(userRegisterRequest == null){
@@ -50,6 +57,7 @@ public class UserController {
         return userService.userRegister(userAccount, userPassword, checkPassword, gender);
     }
 
+    @Operation(summary = "用户登录")
     @PostMapping("/login")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request){
         if(userLoginRequest == null){
@@ -64,6 +72,7 @@ public class UserController {
         return ResultUtil.success(user);
     }
 
+    @Operation(summary = "用户登出")
     @PostMapping("/logout")
     public BaseResponse<Integer> userLogout(HttpServletRequest request){
         if (request == null){
@@ -73,34 +82,36 @@ public class UserController {
         return ResultUtil.success(result);
     }
 
-@GetMapping("/search")
-public BaseResponse<List<User>> searchUsers(String userName, String userAccount,  String email,  String phone,
-                                            Integer gender,  Integer userRole,HttpServletRequest request) {
-    if(!isAdmin(request)) {
-        throw new BusinessException(ErrorCode.NO_AUTH);
-    }
-    QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-
-    // 使用Map存储查询条件
-    Map<String, Object> queryConditions = new HashMap<>();
-    queryConditions.put("userName", userName);
-    queryConditions.put("userAccount", userAccount);
-    queryConditions.put("email", email);
-    queryConditions.put("phone", phone);
-    queryConditions.put("gender", gender);
-    queryConditions.put("userRole", userRole);
-
-    // 遍历Map并添加条件到queryWrapper
-    queryConditions.forEach((key, value) -> {
-        if (value != null && StringUtils.isNotBlank(value.toString())) {
-            queryWrapper.like(key, value);
+    @Operation(summary = "搜索用户")
+    @GetMapping("/search")
+    public BaseResponse<List<User>> searchUsers(String userName, String userAccount,  String email,  String phone,
+                                                Integer gender,  Integer userRole,HttpServletRequest request) {
+        if(!isAdmin(request)) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
         }
-    });
-    List<User> userList = userService.list(queryWrapper);
-    List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
-    return ResultUtil.success(list);
-}
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
 
+        // 使用Map存储查询条件
+        Map<String, Object> queryConditions = new HashMap<>();
+        queryConditions.put("userName", userName);
+        queryConditions.put("userAccount", userAccount);
+        queryConditions.put("email", email);
+        queryConditions.put("phone", phone);
+        queryConditions.put("gender", gender);
+        queryConditions.put("userRole", userRole);
+
+        // 遍历Map并添加条件到queryWrapper
+        queryConditions.forEach((key, value) -> {
+            if (value != null && StringUtils.isNotBlank(value.toString())) {
+                queryWrapper.like(key, value);
+            }
+        });
+        List<User> userList = userService.list(queryWrapper);
+        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        return ResultUtil.success(list);
+    }
+
+    @Operation(summary = "查询当前用户登录态")
     @GetMapping("/current")
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
@@ -115,6 +126,7 @@ public BaseResponse<List<User>> searchUsers(String userName, String userAccount,
             return ResultUtil.success(safeUser);
     }
 
+    @Operation(summary = "更新用户信息")
     @PostMapping("/update")
     public BaseResponse<Boolean> updateUser(@RequestBody UserUpdateRequest userUpdateRequest, HttpServletRequest request) {
         if (!isAdmin(request)) {
@@ -129,6 +141,7 @@ public BaseResponse<List<User>> searchUsers(String userName, String userAccount,
         return ResultUtil.success(flag);
     }
 
+    @Operation(summary = "删除用户")
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request){
         if(!isAdmin(request)) {
