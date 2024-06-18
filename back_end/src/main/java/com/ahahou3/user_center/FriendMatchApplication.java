@@ -14,10 +14,10 @@ import java.net.UnknownHostException;
 @SpringBootApplication
 @MapperScan("com.ahahou3.user_center.mapper")
 @Slf4j
-public class UserCenterApplication {
+public class FriendMatchApplication {
 
 	public static void main(String[] args) {
-		SpringApplication app = new SpringApplication(UserCenterApplication.class);
+		SpringApplication app = new SpringApplication(FriendMatchApplication.class);
 		Environment env = app.run(args).getEnvironment();
 		app.setBannerMode(Banner.Mode.CONSOLE);
 		logApplicationStartup(env);

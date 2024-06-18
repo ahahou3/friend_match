@@ -15,9 +15,9 @@ class Knife4jConfig {
     public OpenAPI springShopOpenApi() {
         return new OpenAPI()
                 // 接口文档标题
-                .info(new Info().title("ahahou的demo")
+                .info(new Info().title("ahahou的朋友匹配项目")
                         // 接口文档简介
-                        .description("这是基于Knife4j OpenApi3的测试接口文档")
+                        .description("这是基于Knife4j OpenApi3的朋友匹配项目接口测试文档")
                         // 接口文档版本
                         .version("1.0版本")
                         // 开发者联系方式
